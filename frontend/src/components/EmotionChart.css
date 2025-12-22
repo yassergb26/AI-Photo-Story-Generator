@@ -1,0 +1,220 @@
+.emotion-chart {
+  width: 100%;
+  padding: 20px;
+}
+
+.emotion-chart-empty {
+  text-align: center;
+  padding: 40px;
+  color: #999;
+  font-size: 14px;
+}
+
+/* Pie Chart Styles */
+.emotion-chart-pie {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 20px;
+}
+
+.pie-chart {
+  width: 200px;
+  height: 200px;
+  filter: drop-shadow(0 2px 8px rgba(0, 0, 0, 0.1));
+}
+
+.pie-segment {
+  transition: opacity 0.2s ease;
+  cursor: pointer;
+}
+
+.pie-segment:hover {
+  opacity: 0.8;
+}
+
+.emotion-legend {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  width: 100%;
+  max-width: 300px;
+}
+
+.legend-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 10px;
+  background: rgba(0, 0, 0, 0.02);
+  border-radius: 6px;
+  transition: background 0.2s ease;
+}
+
+.legend-item:hover {
+  background: rgba(0, 0, 0, 0.05);
+}
+
+.legend-color {
+  width: 12px;
+  height: 12px;
+  border-radius: 3px;
+  flex-shrink: 0;
+}
+
+.legend-icon {
+  font-size: 16px;
+  flex-shrink: 0;
+}
+
+.legend-label {
+  flex: 1;
+  font-size: 14px;
+  font-weight: 500;
+  text-transform: capitalize;
+  color: #333;
+}
+
+.legend-value {
+  font-size: 14px;
+  font-weight: 600;
+  color: #666;
+}
+
+/* Bar Chart Styles */
+.emotion-chart-bar {
+  padding: 10px;
+}
+
+.bar-chart {
+  display: flex;
+  gap: 16px;
+  align-items: flex-end;
+  justify-content: center;
+  height: 200px;
+  padding: 10px 0;
+}
+
+.bar-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  flex: 1;
+  max-width: 80px;
+}
+
+.bar-container {
+  width: 100%;
+  height: 150px;
+  background: rgba(0, 0, 0, 0.05);
+  border-radius: 8px 8px 0 0;
+  display: flex;
+  align-items: flex-end;
+  position: relative;
+  overflow: hidden;
+}
+
+.bar-fill {
+  width: 100%;
+  border-radius: 8px 8px 0 0;
+  transition: all 0.3s ease;
+  cursor: pointer;
+  animation: barGrow 0.6s ease-out;
+}
+
+@keyframes barGrow {
+  from {
+    height: 0;
+  }
+}
+
+.bar-fill:hover {
+  opacity: 0.8;
+  filter: brightness(1.1);
+}
+
+.bar-label {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  text-align: center;
+}
+
+.bar-icon {
+  font-size: 20px;
+}
+
+.bar-name {
+  font-size: 12px;
+  font-weight: 500;
+  text-transform: capitalize;
+  color: #555;
+  white-space: nowrap;
+}
+
+.bar-percentage {
+  font-size: 11px;
+  font-weight: 600;
+  color: #888;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .bar-chart {
+    gap: 8px;
+  }
+
+  .bar-item {
+    max-width: 60px;
+  }
+
+  .bar-icon {
+    font-size: 16px;
+  }
+
+  .bar-name {
+    font-size: 10px;
+  }
+
+  .bar-percentage {
+    font-size: 10px;
+  }
+
+  .pie-chart {
+    width: 150px;
+    height: 150px;
+  }
+}
+
+/* Dark mode support */
+@media (prefers-color-scheme: dark) {
+  .legend-item {
+    background: rgba(255, 255, 255, 0.05);
+  }
+
+  .legend-item:hover {
+    background: rgba(255, 255, 255, 0.1);
+  }
+
+  .legend-label {
+    color: #e0e0e0;
+  }
+
+  .legend-value {
+    color: #b0b0b0;
+  }
+
+  .bar-container {
+    background: rgba(255, 255, 255, 0.1);
+  }
+
+  .bar-name {
+    color: #b0b0b0;
+  }
+
+  .bar-percentage {
+    color: #888;
+  }
+}

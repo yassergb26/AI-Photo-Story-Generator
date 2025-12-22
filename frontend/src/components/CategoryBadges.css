@@ -1,0 +1,36 @@
+.category-badges {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-top: 0.5rem;
+}
+
+.category-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  padding: 0.25rem 0.6rem;
+  border-radius: 12px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: white;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  transition: transform 0.2s;
+}
+
+.category-badge:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+}
+
+.category-name {
+  line-height: 1;
+}
+
+.category-confidence {
+  opacity: 0.9;
+  font-size: 0.7rem;
+  background: rgba(0, 0, 0, 0.15);
+  padding: 0.1rem 0.3rem;
+  border-radius: 8px;
+}
