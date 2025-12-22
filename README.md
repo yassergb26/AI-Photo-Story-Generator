@@ -112,7 +112,7 @@ npm --version
 **1. Clone the Repository**
 ```bash
 git clone <repository-url>
-cd Siva
+cd 
 ```
 
 **2. Backend Setup**
