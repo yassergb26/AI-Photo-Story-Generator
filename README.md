@@ -477,28 +477,6 @@ pip install -r requirements.txt
 
 ---
 
-## 🔐 Security Considerations
-
-### API Key Management
-- **Never commit** `.env` files to version control
-- Store API keys securely
-- Rotate keys periodically
-- Use environment variables in production
-
-### File Upload Security
-- File size limits enforced (10MB default)
-- File type validation (images only)
-- Secure file storage with UUID filenames
-- Thumbnail generation for display
-
-### Database Security
-- Use strong PostgreSQL passwords
-- Enable SSL for production databases
-- Regular backups recommended
-- Sanitize user inputs
-
----
-
 ## 📈 Performance Optimization
 
 ### For Large Photo Collections (1000+ photos)
@@ -561,53 +539,6 @@ Siva/
 
 ---
 
-## 🤝 Contributing
-
-### Future Improvements
-See [FUTURE_IMPROVEMENTS.md](FUTURE_IMPROVEMENTS.md) for:
-- AI-powered dynamic chapter generation
-- Multi-signal clustering
-- GPT-4 Vision integration
-- And more advanced features
-
-### Reporting Issues
-- Check existing issues first
-- Provide detailed description
-- Include error messages and logs
-- Steps to reproduce
-
----
-
-## 📄 License
-
-This project is proprietary software developed for client delivery.
-
----
-
-## 🙏 Acknowledgments
-
-### AI Models
-- **OpenAI** - CLIP image classification and GPT-4 narrative generation
-- **HSEmotion** - Facial emotion detection model
-
-### Technologies
-- **FastAPI** - Modern Python web framework
-- **React + Vite** - Fast frontend development
-- **PostgreSQL** - Reliable database
-- **Transformers** - Hugging Face model library
-
----
-
-## 📞 Support
-
-For technical support or questions:
-1. Check this README for common issues
-2. Review backend console logs
-3. Check browser console for frontend errors
-4. Consult [FUTURE_IMPROVEMENTS.md](FUTURE_IMPROVEMENTS.md) for enhancement ideas
-
----
-
 ## 🎯 Quick Reference
 
 ### Start Everything
@@ -639,11 +570,3 @@ cd backend && python main.py
 # Check backend logs
 # Watch backend terminal for detailed progress
 ```
-
----
-
-**Project Status**: Production Ready ✅
-
-**Last Updated**: December 2025
-
-**Version**: 1.0.0
