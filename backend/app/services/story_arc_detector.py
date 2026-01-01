@@ -8,6 +8,7 @@ from app.models import Chapter, Story, Image, LifeEvent, LifeEventImage, StoryIm
 from datetime import datetime, timedelta
 from typing import List, Dict, Any, Optional
 from collections import defaultdict
+from app.utils.spatial_clustering import cluster_locations_dbscan, get_cluster_center
 import logging
 
 logger = logging.getLogger(__name__)
@@ -50,27 +51,52 @@ def cluster_photos_by_temporal_bursts(photos: List[Image], min_gap_days: int = 3
     return clusters
 
 
-def cluster_photos_by_location(photos: List[Image], min_cluster_size: int = 5) -> List[List[Image]]:
+def cluster_photos_by_location(photos: List[Image], eps_km: float = 0.5, min_cluster_size: int = 5) -> List[List[Image]]:
     """
-    Cluster photos by location (GPS coordinates)
+    Cluster photos by location using DBSCAN with Haversine distance
     Groups photos taken at similar locations (trips, venues)
+
+    Args:
+        photos: List of photos to cluster
+        eps_km: Maximum distance between photos in km to be in same cluster (default 0.5km)
+        min_cluster_size: Minimum photos in a cluster (default 5)
+
+    Returns:
+        List of photo clusters
     """
-    location_groups = defaultdict(list)
+    # Filter photos with location data
+    photos_with_location = [
+        p for p in photos
+        if p.location and p.location.get('latitude') and p.location.get('longitude')
+    ]
 
-    for photo in photos:
-        if not photo.location or not photo.location.get('latitude'):
-            continue
+    if len(photos_with_location) < min_cluster_size:
+        logger.info(f"Not enough photos with location ({len(photos_with_location)}) for clustering")
+        return []
 
-        # Round coordinates to group nearby photos
-        # ~11km precision with 2 decimal places
-        lat = round(photo.location['latitude'], 1)
-        lon = round(photo.location['longitude'], 1)
-        location_key = f"{lat},{lon}"
+    # Extract coordinates
+    coordinates = [
+        (p.location['latitude'], p.location['longitude'])
+        for p in photos_with_location
+    ]
 
-        location_groups[location_key].append(photo)
+    # Run DBSCAN clustering
+    cluster_labels = cluster_locations_dbscan(
+        coordinates,
+        eps_km=eps_km,
+        min_samples=min_cluster_size
+    )
 
-    # Filter clusters by minimum size
-    clusters = [photos for photos in location_groups.values() if len(photos) >= min_cluster_size]
+    # Group photos by cluster label
+    cluster_dict = defaultdict(list)
+    for photo, label in zip(photos_with_location, cluster_labels):
+        if label != -1:  # Exclude noise points (label -1)
+            cluster_dict[label].append(photo)
+
+    # Convert to list of clusters
+    clusters = list(cluster_dict.values())
+
+    logger.info(f"DBSCAN clustered {len(photos_with_location)} photos into {len(clusters)} location-based clusters")
 
     return clusters
 

@@ -1,10 +1,12 @@
 """
 Photo upload and retrieval endpoints
 """
-from fastapi import APIRouter, Depends, UploadFile, File, HTTPException, status
+from fastapi import APIRouter, Depends, UploadFile, File, HTTPException, status, Request
 from sqlalchemy.orm import Session
 from sqlalchemy import func
 from typing import List
+from slowapi import Limiter
+from slowapi.util import get_remote_address
 import logging
 
 from app.database import get_db
@@ -17,16 +19,18 @@ from app.utils.duplicate_detection import calculate_file_hash, check_duplicate_i
 from app.thumbnails import generate_thumbnail, delete_thumbnail
 # from app.tasks import classify_images_batch  # Commented out - requires Redis/Celery
 from app.redis_client import cache_api_response, get_api_response, invalidate_user_cache
-from app.services.emotion_detection import detect_emotions, get_dominant_emotion
 from app.services import classify_image_file
 
 logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/api/photos", tags=["photos"])
+limiter = Limiter(key_func=get_remote_address)
 
 
 @router.post("/upload", response_model=UploadResponse)
+@limiter.limit("10/minute")  # 10 uploads per minute per IP
 async def upload_images(
+    request: Request,
     files: List[UploadFile] = File(...),
     db: Session = Depends(get_db)
 ):
@@ -244,7 +248,7 @@ def get_images(
     }
 
     # Cache for 5 minutes
-    cache_api_response(cache_key, response, ttl=300)
+    cache_api_response(cache_key, response, expiry=300)
 
     return response
 

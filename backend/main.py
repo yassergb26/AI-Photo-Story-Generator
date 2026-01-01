@@ -2,15 +2,18 @@
 FastAPI Main Application
 Milestone 1: Foundation & Core Infrastructure
 """
-from fastapi import FastAPI
+from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
+from slowapi import Limiter, _rate_limit_exceeded_handler
+from slowapi.util import get_remote_address
+from slowapi.errors import RateLimitExceeded
 import logging
 from pathlib import Path
 
 from app.config import settings
 from app.database import engine, Base
-from app.routers import photos, classifications, patterns, stories, emotions, narratives, life_events, exports, chapters
+from app.routers import photos, classifications, patterns, stories, emotions, narratives, life_events, exports, chapters, tasks
 
 # Configure logging
 logging.basicConfig(
@@ -22,12 +25,19 @@ logger = logging.getLogger(__name__)
 # Create database tables
 Base.metadata.create_all(bind=engine)
 
+# Configure rate limiter
+limiter = Limiter(key_func=get_remote_address)
+
 # Create FastAPI app
 app = FastAPI(
     title=settings.APP_NAME,
     version=settings.APP_VERSION,
     debug=settings.DEBUG
 )
+
+# Add rate limiter to app state
+app.state.limiter = limiter
+app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
 
 # Configure CORS
 app.add_middleware(
@@ -56,6 +66,7 @@ app.include_router(narratives.router)  # Milestone 5: AI Narratives
 app.include_router(life_events.router)  # Milestone 6: Life Events System
 app.include_router(exports.router)  # Milestone 6: Export Features
 app.include_router(chapters.router)  # NEW: Chapters & Story Arcs System
+app.include_router(tasks.router)  # Task status endpoints for async operations
 
 
 @app.get("/")

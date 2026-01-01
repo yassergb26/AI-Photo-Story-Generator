@@ -14,7 +14,7 @@ from app.schemas import (
     StoryResponse, StoryWithImagesResponse, StoryCreate, StoryUpdate,
     StoryGenerationRequest, StoryGenerationResponse
 )
-from app.services.narrative_generation import generate_narrative
+from app.services.ai_narrative import generate_narrative
 
 logger = logging.getLogger(__name__)
 

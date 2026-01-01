@@ -33,6 +33,17 @@ pydantic==2.10.3
 pydantic-settings==2.6.1
 email-validator==2.3.0
 
+# Async Task Queue
+celery==5.4.0
+redis==5.2.0
+
+# Rate Limiting
+slowapi==0.1.9
+
+# Machine Learning
+scikit-learn==1.6.1
+geopy==2.4.1
+
 # Testing
 pytest==8.3.4
 httpx==0.28.1

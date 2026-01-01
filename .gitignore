@@ -52,3 +52,8 @@ logs/
 .coverage
 htmlcov/
 .pytest_cache/
+
+# Redis
+redis/
+*.rdb
+dump.rdb

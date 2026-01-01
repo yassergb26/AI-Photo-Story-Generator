@@ -10,7 +10,7 @@ from datetime import datetime
 
 from app.database import get_db
 from app.models import Story, StoryImage, StoryEmotion, Emotion, Category, ImageCategory
-from app.services.narrative_generation import generate_narrative
+from app.services.ai_narrative import generate_narrative
 from pydantic import BaseModel
 
 logger = logging.getLogger(__name__)

@@ -350,3 +350,31 @@ async def enhance_story_arc_with_ai_narrative(story_arc, db):
     except Exception as e:
         logger.error(f"Error enhancing story arc with AI narrative: {str(e)}")
         return story_arc
+
+
+def generate_narrative(
+    story_metadata: Dict[str, Any],
+    narrative_tone: str = "joyful",
+    pattern_type: str = "visual",
+    use_llm: bool = True
+) -> Dict[str, str]:
+    """
+    Wrapper function for backwards compatibility with stories router
+    Generates narrative using existing AI narrative functions
+
+    Args:
+        story_metadata: Story metadata dictionary
+        narrative_tone: Desired tone (default: joyful)
+        pattern_type: Type of pattern (default: visual)
+        use_llm: Whether to use LLM (default: True)
+
+    Returns:
+        Dictionary with title, description, and tone
+    """
+    # Use the existing story arc generation function
+    result = generate_story_arc_title_and_narrative(story_metadata)
+
+    # Add tone to response
+    result['tone'] = narrative_tone
+
+    return result

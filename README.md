@@ -12,10 +12,19 @@ An intelligent system that transforms your photo collection into meaningful life
 - **📖 Smart Chapter Generation** - Organizes photos into life chapters based on age ranges
 - **✨ Story Arc Detection** - Intelligently groups photos into meaningful story arcs using:
   - Temporal clustering (date proximity)
+  - **DBSCAN spatial clustering with Haversine distance** for geographic location grouping
   - Visual similarity (CLIP classifications)
   - Emotional context (detected emotions)
 - **🎯 GPT-4 Narrative Generation** - Creates creative titles and descriptions for chapters and stories
 - **🔍 Pattern Detection** - Discovers temporal, spatial, and visual patterns in your photos
+
+### Production Features
+- **⚡ Async Task Processing** - Celery+Redis pipeline for long-running operations
+- **📊 Task Status Tracking** - Real-time progress monitoring for background tasks
+- **🚦 Rate Limiting** - IP-based rate limits to prevent API abuse
+- **💾 Redis Caching** - Fast API responses with automatic cache invalidation
+- **📍 Geographic Clustering** - DBSCAN algorithm with Haversine distance for location-based photo grouping
+- **📄 Paginated APIs** - Efficient data loading for large photo collections
 
 ### User Experience
 - **One-Click Auto Mode** - Complete processing pipeline in a single click
@@ -100,7 +109,14 @@ npm --version
 - Install PostgreSQL from https://www.postgresql.org/download/
 - Create a database named `photo_story_db`
 
-**4. API Keys**
+**4. Redis Server**
+- Install Redis from https://redis.io/download
+- Required for async task processing and caching
+- Windows: https://github.com/microsoftarchive/redis/releases
+- Mac: `brew install redis`
+- Linux: `sudo apt install redis-server`
+
+**5. API Keys**
 - **OpenAI API Key** - Required for CLIP classification and GPT-4 narratives
   - Get from: https://platform.openai.com/api-keys
   - Set as environment variable: `OPENAI_API_KEY`
@@ -170,6 +186,9 @@ Create a `.env` file in the `backend/` directory:
 # Database
 DATABASE_URL=postgresql://postgres:your_password@localhost/photo_story_db
 
+# Redis
+REDIS_URL=redis://localhost:6379/0
+
 # OpenAI API
 OPENAI_API_KEY=sk-your-openai-api-key-here
 
@@ -199,10 +218,37 @@ VITE_API_URL=http://localhost:8000
 
 ### Running the Application
 
-**1. Start Backend**
+**1. Start Redis Server**
 
 ```bash
-# From backend directory
+# Windows (from Redis installation directory)
+redis-server
+
+# Mac
+brew services start redis
+
+# Linux
+sudo service redis-server start
+
+# Or run directly
+redis-server
+```
+
+**2. Start Celery Worker** (Optional - for async processing)
+
+```bash
+# From backend directory (new terminal)
+cd backend
+venv\Scripts\activate  # Windows
+# source venv/bin/activate  # Mac/Linux
+
+celery -A app.celery_app worker --loglevel=info --pool=solo
+```
+
+**3. Start Backend**
+
+```bash
+# From backend directory (new terminal)
 cd backend
 venv\Scripts\activate  # Windows
 # source venv/bin/activate  # Mac/Linux
@@ -212,17 +258,17 @@ python main.py
 
 Backend will start at: http://localhost:8000
 
-**2. Start Frontend**
+**4. Start Frontend**
 
 ```bash
-# From frontend directory (in a new terminal)
+# From frontend directory (new terminal)
 cd frontend
 npm run dev
 ```
 
 Frontend will start at: http://localhost:5173
 
-**3. Access the Application**
+**5. Access the Application**
 
 Open your browser to: http://localhost:5173
 
@@ -326,10 +372,15 @@ Auto Mode runs the complete AI pipeline:
 ## 🔧 API Endpoints
 
 ### Photos
-- `POST /api/photos/upload` - Upload photos
-- `GET /api/photos` - List photos with pagination
+- `POST /api/photos/upload` - Upload photos (Rate limited: 10/minute)
+- `GET /api/photos` - List photos with pagination (Redis cached)
 - `GET /api/photos/{id}` - Get photo details
 - `DELETE /api/photos/{id}` - Delete photo
+
+### Tasks (Async Processing)
+- `GET /api/tasks/{task_id}` - Get task status and progress (Rate limited: 60/minute)
+- `DELETE /api/tasks/{task_id}` - Cancel running task
+- `GET /api/tasks/` - List active tasks
 
 ### Chapters
 - `GET /api/chapters` - List chapters
@@ -338,7 +389,7 @@ Auto Mode runs the complete AI pipeline:
 - `DELETE /api/chapters/{id}` - Delete chapter
 
 ### Classifications
-- `POST /api/classifications/classify-image` - Classify single image
+- `POST /api/classifications/classify-image` - Classify single image (can trigger async task)
 - `GET /api/classifications` - Get classifications for image
 
 ### Emotions
@@ -347,12 +398,76 @@ Auto Mode runs the complete AI pipeline:
 
 ### Patterns
 - `POST /api/patterns/detect-temporal` - Detect temporal patterns
-- `POST /api/patterns/detect-spatial` - Detect spatial patterns
+- `POST /api/patterns/detect-spatial` - Detect spatial patterns (uses DBSCAN)
 - `POST /api/patterns/detect-visual` - Detect visual patterns
 
 ### Stories
 - `GET /api/stories` - List story arcs
 - `GET /api/stories/{id}` - Get story details
+
+---
+
+## ⚡ Async Task Processing
+
+### Overview
+The system uses Celery+Redis for background processing of long-running operations. This allows the API to return immediately while tasks run asynchronously.
+
+### Available Async Tasks
+
+1. **Image Classification** (`classify_image_task`)
+   - Processes a single image with CLIP model
+   - Returns categories with confidence scores
+   - Saves results to database
+
+2. **Emotion Detection** (`detect_emotions_task`)
+   - Detects facial emotions in image
+   - Returns dominant emotion and all detected emotions
+   - Saves results to database
+
+3. **Batch Processing** (`process_image_batch`)
+   - Processes multiple images in parallel
+   - Tracks progress (current/total)
+   - Returns aggregate results
+
+4. **Story Arc Generation** (`generate_story_arcs_task`)
+   - Analyzes photos for patterns
+   - Uses DBSCAN for location clustering
+   - Creates story arcs with AI narratives
+
+### Monitoring Task Progress
+
+```python
+# Submit async task
+response = requests.post('/api/photos/upload', files=files)
+task_id = response.json()['task_id']
+
+# Check task status
+status = requests.get(f'/api/tasks/{task_id}')
+print(status.json())
+# {
+#   "task_id": "abc123",
+#   "state": "PROCESSING",
+#   "progress": 45,
+#   "current": 45,
+#   "total": 100
+# }
+
+# Cancel task if needed
+requests.delete(f'/api/tasks/{task_id}')
+```
+
+### Testing Async Processing
+
+```bash
+# Start services
+cd backend
+python test_celery.py
+
+# Expected output:
+# ✅ Redis connection successful!
+# ✅ Task was received and executed by worker!
+# ✅ All tests passed! Async processing is ready.
+```
 
 ---
 
@@ -543,12 +658,20 @@ Siva/
 
 ### Start Everything
 ```bash
-# Terminal 1 - Backend
+# Terminal 1 - Redis
+redis-server
+
+# Terminal 2 - Celery Worker (optional)
+cd backend
+venv\Scripts\activate
+celery -A app.celery_app worker --loglevel=info --pool=solo
+
+# Terminal 3 - Backend
 cd backend
 venv\Scripts\activate
 python main.py
 
-# Terminal 2 - Frontend
+# Terminal 4 - Frontend
 cd frontend
 npm run dev
 ```
